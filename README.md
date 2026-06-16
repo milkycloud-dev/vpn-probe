@@ -1,101 +1,63 @@
 # VPN Probe
 
-Веб-инструмент диагностики сети: проверка блокировок, DNS-подмены, DPI, throttling и VPN-транспортов. Запускается в браузере, без установки и регистрации.
+A web-based client-side network diagnostics tool designed to check internet censorship, DNS poisoning, DPI blocking, throttling, and the viability of common VPN transport protocols. 
 
-[![Deploy GitHub Pages](https://github.com/milkycloud-dev/vpn-probe/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/milkycloud-dev/vpn-probe/actions/workflows/deploy-pages.yml)
+Runs entirely in the browser without any installation, backend dependencies, or sign-ups.
 
-**Демо:** https://milkycloud-dev.github.io/vpn-probe/
-
----
-
-## Назначение
-
-VPN Probe выполняет около 110 проб с устройства пользователя на публичные endpoints. Результат — оценка доступности сети и типичных обходных транспортов в текущих условиях подключения.
-
-Инструмент не тестирует конкретный VPN-аккаунт или сервер. Используется для диагностики и анализа, без гарантий применимости к вашей инфраструктуре.
+**Live Demo:** [https://milkycloud-dev.github.io/vpn-probe/](https://milkycloud-dev.github.io/vpn-probe/)
 
 ---
 
-## Состав проверок
+## Features
 
-| Направление | Содержание |
-|-------------|------------|
-| Базовая доступность | HTTPS к Cloudflare, Google, GitHub, Яндекс, VK и др. |
-| Реестр РКН (27) | X, Instagram, Reddit, Meduza, ProtonVPN, Tor и др. |
-| Контроль РФ (10) | VK, Яндекс, Госуслуги, Ozon, Rutube и др. |
-| DNS | DoH-резолверы, сверка ответов, poison по реестру, IPv6 vs IPv4 |
-| Транспорты | WSS, долгие сессии, типовые path, параллельные WSS, UDP/STUN, WebTransport |
-| Специфика РФ | IMG-пробы, throttling, стабильность DPI, каскад из 12 узлов |
-
-Вердикты по протоколам (VLESS, VMess, Trojan, Shadowsocks, WireGuard, OpenVPN, Hysteria, IKEv2, Reality) формируются по косвенным признакам; где браузер не может проверить handshake, ставится `inconclusive`.
+* **Network Baseline Checks:** Performs HTTPS probes to major global CDNs (Cloudflare, Google, GitHub, etc.).
+* **Censorship Detection:** Tests reachability of popular blocked services.
+* **DNS Diagnostics:** Resolves queries against DoH resolvers, checks for poisoned records, and compares IPv4 vs IPv6.
+* **Transport Protocol Probes:** Assesses WebSocket (WSS) stability, UDP/STUN reachability, and WebTransport performance to approximate the viability of VPN protocols (VLESS, VMess, Trojan, Shadowsocks, WireGuard, Hysteria, Reality).
+* **Detailed Logs:** Offers downloadable raw logs and clipboards export after scanning.
 
 ---
 
-## Метрики отчёта
+## Technical Stack
 
-| Метрика | Описание |
-|---------|----------|
-| Индекс блокировок РФ | Доля недоступных сервисов из реестра |
-| Цензура % | Реестр, DNS poison, IMG, throttling |
-| VPN-транспорт | WSS, UDP/QUIC, WebTransport, стабильность |
-| Интернет | Baseline HTTPS и DNS |
-
-Контрольные сервисы РФ должны быть доступны. Их недоступность указывает на проблему сети, а не на цензуру.
-
-Недоступность сервисов реестра в РФ без обхода — ожидаемый результат.
-
-После сканирования доступны экспорт в текстовый файл и копирование полного отчёта в буфер обмена.
+* **Frontend:** Vite, TypeScript, HSL Tailored CSS (Vanilla UI).
+* **CI/CD & Hosting:** GitHub Actions & GitHub Pages.
 
 ---
 
-## Ограничения
+## Developer Guide
 
-- Проверка выполняется с клиентского устройства; трафик не проходит через серверы проекта.
-- Браузер не выполняет реальные handshake WireGuard, OpenVPN, VLESS Reality.
-- Оценки poison, throttling и блокировок носят эвристический характер.
-- Результаты зависят от провайдера, геолокации, CDN и момента проверки.
-- Встроенный терминал — эмуляция shell для интерфейса, не удалённая система.
+### Getting Started
 
----
+1. Clone the repository and install packages:
+   ```bash
+   git clone https://github.com/milkycloud-dev/vpn-probe.git
+   cd vpn-probe
+   npm install
+   ```
 
-## Разработка
+2. Start the local development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-git clone https://github.com/milkycloud-dev/vpn-probe.git
-cd vpn-probe
-npm install
-npm run dev
-```
-
-```bash
-npm run build
-npm run preview
-```
-
-**Стек:** Vite, TypeScript, GitHub Actions, GitHub Pages.
-
-### Деплой
-
-1. Fork или clone репозитория.
-2. В настройках репозитория: **Settings → Pages → Source: GitHub Actions**.
-3. Push в ветку `master` — workflow соберёт и опубликует `dist/`.
-
-Для репрезентативных результатов по РФ рекомендуется запуск из российской сети (домашний ISP или мобильный оператор).
-
-### Структура проекта
-
-```
-src/
-├── main.ts, runner.ts, report.ts, narrative.ts
-├── ui.ts, terminal.ts, export.ts, locale.ts, sync.ts
-├── probes/       # https, dns, websocket, udp, webtransport, ipv6, russia…
-└── shell*.ts     # интерактивный терминал
-```
+3. Build production bundle:
+   ```bash
+   npm run build
+   ```
 
 ---
 
-## Лицензия
+## Deployment
 
-MIT. Проект разработан на базе MilkyCloud.
+Deploy your own instance of VPN Probe using GitHub Pages:
 
-Вопросы и предложения: https://github.com/milkycloud-dev/vpn-probe/issues
+1. Fork or clone the repository.
+2. In your repository settings: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+3. Push to the `main` or `master` branch. The included GitHub Actions workflow will build and publish the site automatically.
+
+---
+
+## License
+
+This project is licensed under the **MIT License**.
