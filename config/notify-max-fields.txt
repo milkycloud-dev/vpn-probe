@@ -1,0 +1,208 @@
+VPN Probe — максимум полей в уведомлениях бота
+==============================================
+
+Ограничение Telegram: до 4096 символов на сообщение. Полный JSON всегда
+сохраняется в Supabase (таблица probe_events). В канал уходит сжатый текст.
+
+────────────────────────────────────────────────────────────────────────────
+СОБЫТИЕ: visit (первый визит за сессию)
+────────────────────────────────────────────────────────────────────────────
+
+Геолокация (resolveLocale)
+  ip                  Публичный IP
+  geo_country         Страна
+  geo_country_code    Код страны (RU, US…)
+  geo_region          Регион / область
+  geo_city            Город
+  geo_lat             Широта
+  geo_lon             Долгота
+  geo_isp             Провайдер / ASN org
+  geo_label           Сводка: город, регион, страна
+
+Страница
+  url                 Полный URL
+  host                Домен
+  path                Путь
+  referrer            Откуда пришёл (или —)
+  page_title          Заголовок вкладки
+
+Клиент / браузер
+  language            navigator.language
+  languages           navigator.languages (через запятую)
+  timezone            IANA timezone
+  local_time          ISO 8601 UTC
+  platform            navigator.platform
+  user_agent          Полный User-Agent
+  screen              screen.width x height
+  viewport            innerWidth x innerHeight
+  pixel_ratio         devicePixelRatio
+  color_depth         screen.colorDepth
+  online              onLine
+  cookies             cookieEnabled
+  cores               hardwareConcurrency
+  memory_gb           deviceMemory (если доступно)
+  touch               maxTouchPoints > 0
+  color_scheme        dark / light
+  visibility          document.visibilityState
+
+Сеть (Network Information API, если есть)
+  net_type            effectiveType (4g, wifi…)
+  net_downlink_mbps   downlink
+  net_rtt_ms          rtt
+  net_save_data       saveData
+
+Telegram Mini App (если открыто в Telegram)
+  tg_platform         ios / android / tdesktop / web…
+  tg_version          версия WebApp API
+  tg_expanded         развёрнуто на весь экран
+  tg_viewport_h       высота viewport TG
+  tg_color_scheme     тема TG
+  tg_user_id          ID пользователя (если /start был)
+  tg_username         @username
+  tg_name             имя из профиля
+
+Служебное
+  session_id          UUID сессии (sessionStorage)
+
+────────────────────────────────────────────────────────────────────────────
+СОБЫТИЕ: scan_complete (тест завершён)
+────────────────────────────────────────────────────────────────────────────
+
+Всё из блока «Геолокация» и «Клиент» (кроме page/referrer — дублируется
+language, timezone, platform, user_agent, screen, viewport).
+
+Время прогона
+  started_at          ISO начала
+  finished_at         ISO окончания
+  duration_sec        Длительность, сек
+
+Итоговые оценки
+  overall_score       Общий score %
+  overall_verdict     Текстовый вердикт
+  censorship_likelihood  Вероятность цензуры %
+  freedom_score       100 − censorship_likelihood
+  split_censorship    Оценка слоя цензуры
+  split_vpn_transport Оценка VPN-транспортов
+  split_baseline      Оценка baseline
+
+Статистика проб
+  probes_total        Всего проб
+  probes_ok           Успешных
+  probes_blocked      Заблокированных
+  probes_timeout      Таймаутов
+  probes_error        Ошибок
+  probes_inconclusive Неопределённых
+  latency_p50_ms      Медиана latency
+  latency_p95_ms      P95 latency
+  latency_min_ms      Минимум
+  latency_max_ms      Максимум
+
+РФ
+  russia_blocked_index    Индекс блокировок реестра %
+  russia_blocked_total    Всего в реестре
+  russia_blocked_down     Недоступно из реестра
+  russia_control_total    Контрольных РФ
+  russia_control_up       Контрольных доступно
+
+Специфичные сигналы
+  dns_poisoned        DNS poison / блок
+  image_blocks        IMG-пробы с блоком
+  throttle_ratio      Средний ratio throttling
+
+Ошибки (error_breakdown)
+  error_breakdown     dns_failure:N, timeout:N, tcp_reset:N…
+
+Слои (layers_summary)
+  layers_summary      Базовый интернет: 5/5 ок | DNS: 3/8 ок | …
+
+Протоколы (protocols_summary)
+  protocols_summary   VLESS+WS: likely_blocked (45%) | WireGuard: …
+
+Заблокированные пробы (до 20 имён)
+  blocked_probes      X (HTTPS), Instagram IMG, …
+
+Каскад
+  cascade_total       Узлов в каскаде
+  cascade_ok          Узлов OK
+  cascade_fail        Узлов с блоком/таймаутом
+
+Окружение отчёта
+  env_probes          Число проб в environment
+  env_cascade         Число узлов каскада
+
+────────────────────────────────────────────────────────────────────────────
+ПРИМЕР: visit
+────────────────────────────────────────────────────────────────────────────
+
+VPN Probe · визит
+IP: 194.150.166.250
+Страна: United Kingdom (GB)
+Регион: England
+Город: London
+Координаты: 51.5085, -0.1257
+Провайдер: Regxa Company for Information Technology Ltd
+Место: London, England, United Kingdom
+Сессия: 8f3c2a1b-…
+
+Страница: https://milkycloud-dev.github.io/vpn-probe/
+Referrer: —
+Язык: ru-RU (ru-RU, en-US)
+TZ: Europe/Moscow · 2026-06-14T12:00:00.000Z
+
+Устройство: Win32 · 1920x1080 · viewport 390x844 · DPR 2
+Сеть: 4g · 10 Mbps · RTT 50 ms
+Онлайн: да · Cookies: да · Ядра: 8 · RAM: 8 GB
+
+Telegram: tdesktop 7.2 · user 5663562145 · @milky_ph
+UA: Mozilla/5.0 …
+
+────────────────────────────────────────────────────────────────────────────
+ПРИМЕР: scan_complete
+────────────────────────────────────────────────────────────────────────────
+
+VPN Probe · тест завершён
+IP: 194.150.166.250 · Regxa · London, England, United Kingdom
+Сессия: 8f3c2a1b-…
+Время: 2026-06-14T12:00:05Z → 12:02:18Z (133 с)
+
+Score: 28% · Цензура: 71% · Свобода: 29%
+Вердикт: Сильная цензура — большинство обходов под запретом
+Слои: цензура 22 · VPN-транспорт 18 · baseline 45
+
+Пробы: 112 ок / 34 блок / 8 таймаут / 3 ошибка / 6 неопр. / 163 всего
+Latency: p50 420 ms · p95 2100 ms · min 12 · max 8900 ms
+
+РФ реестр: 24/27 недоступно (89%)
+РФ контроль: 10/10 доступно
+DNS poison: 5 · IMG блок: 3 · Throttle ratio: 4.2
+
+Ошибки: timeout:12, dns_poisoned:5, tcp_reset:8, cors_opaque:4
+
+Слои:
+  Базовый интернет: 5/5 ок
+  DNS: 2/8 ок
+  WebSocket: 1/12 ок
+  РФ блок: 3/27 ок
+  …
+
+Протоколы:
+  VLESS+WS: likely_blocked (48%)
+  WireGuard: likely_blocked (41%)
+  Trojan: inconclusive (22%)
+  …
+
+Блок (топ): Instagram HTTPS, X HTTPS, Reddit DoH, …
+
+Каскад: 9/12 узлов OK
+
+Platform: Win32 · ru-RU · Europe/Moscow
+
+────────────────────────────────────────────────────────────────────────────
+НЕ СОБИРАЕТСЯ (ограничения браузера)
+────────────────────────────────────────────────────────────────────────────
+
+  • MAC-адрес, локальный IP, Wi-Fi SSID
+  • Точный GPS с телефона
+  • Содержимое VPN-туннеля / конфиги пользователя
+  • Полный список всех 160+ проб в Telegram (только в БД и .txt отчёте)
+  • Реальный ICMP traceroute

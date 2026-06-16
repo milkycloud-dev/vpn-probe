@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+config/secrets.plain.json
+.env
+.env.local

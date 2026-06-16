@@ -1,0 +1,2 @@
+[functions.hp-ingest]
+verify_jwt = false

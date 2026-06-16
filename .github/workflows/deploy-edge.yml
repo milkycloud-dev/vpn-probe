@@ -1,0 +1,62 @@
+name: Deploy edge assets
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "supabase/functions/**"
+      - "config/secrets.vault"
+      - "scripts/pack.mjs"
+      - ".github/workflows/deploy-edge.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          PACK_KEY: ${{ secrets.PACK_KEY }}
+        run: |
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          test -n "$SUPABASE_PROJECT_REF"
+          test -n "$PACK_KEY"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Resolve pack
+        id: pack
+        env:
+          INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
+          INGEST_TARGET: ${{ secrets.INGEST_TARGET }}
+          PACK_KEY: ${{ secrets.PACK_KEY }}
+        run: |
+          if [ -n "$INGEST_TOKEN" ] && [ -n "$INGEST_TARGET" ]; then
+            echo "ingest_token=$INGEST_TOKEN" >> "$GITHUB_OUTPUT"
+            echo "ingest_target=$INGEST_TARGET" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          JSON=$(node scripts/pack.mjs open)
+          test -n "$JSON"
+          echo "ingest_token=$(JSON="$JSON" node -e 'console.log(JSON.parse(process.env.JSON).ingest_token)')" >> "$GITHUB_OUTPUT"
+          echo "ingest_target=$(JSON="$JSON" node -e 'console.log(JSON.parse(process.env.JSON).ingest_target)')" >> "$GITHUB_OUTPUT"
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          INGEST_TOKEN: ${{ steps.pack.outputs.ingest_token }}
+          INGEST_TARGET: ${{ steps.pack.outputs.ingest_target }}
+        run: |
+          supabase secrets set INGEST_TOKEN="$INGEST_TOKEN" INGEST_TARGET="$INGEST_TARGET" --project-ref "$SUPABASE_PROJECT_REF"
+          supabase functions deploy hp-ingest --project-ref "$SUPABASE_PROJECT_REF"
