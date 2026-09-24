@@ -53,7 +53,7 @@ Runs entirely in the browser without any installation, backend dependencies, or 
 Deploy your own instance of VPN Probe using GitHub Pages:
 
 1. Fork or clone the repository.
-2. In your repository settings: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+2. In your repository settings: **Settings > Pages > Build and deployment > Source: GitHub Actions**.
 3. Push to the `main` or `master` branch. The included GitHub Actions workflow will build and publish the site automatically.
 
 ---
